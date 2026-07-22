@@ -1,4 +1,4 @@
-import { TouchableOpacity, Text } from "react-native";
+import { TouchableOpacity, Text, ViewStyle } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -11,9 +11,11 @@ import { colors } from "@/constants/theme";
 interface FABProps {
   onPress: () => void;
   label?: string;
+  /** Override the absolute position (e.g. to clear a tab bar) */
+  style?: ViewStyle;
 }
 
-export function FAB({ onPress, label }: FABProps) {
+export function FAB({ onPress, label, style }: FABProps) {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -38,6 +40,7 @@ export function FAB({ onPress, label }: FABProps) {
         {
           zIndex: 100,
         },
+        style,
         animatedStyle,
       ]}
     >
