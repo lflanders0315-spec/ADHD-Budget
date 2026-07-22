@@ -26,6 +26,15 @@ export const StorageKeys = {
   savingsGoals: "savingsGoals",
   spendingEntries: "spendingEntries",
   seededData: "seededData",
+  // Notification preferences
+  billReminders: "billReminders",
+  paycheckReminders: "paycheckReminders",
+  subscriptionAlerts: "subscriptionAlerts",
+  savingsCelebrations: "savingsCelebrations",
+  // Accessibility preferences
+  largeText: "largeText",
+  hapticFeedback: "hapticFeedback",
+  reducedMotion: "reducedMotion",
 } as const;
 
 export type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -38,8 +47,9 @@ export function setString(key: StorageKey, value: string): void {
   storage.set(key, value);
 }
 
-export function getBoolean(key: StorageKey): boolean {
-  return storage.getBoolean(key) ?? false;
+export function getBoolean(key: StorageKey, fallback = false): boolean {
+  const val = storage.getBoolean(key);
+  return val !== undefined ? val : fallback;
 }
 
 export function setBoolean(key: StorageKey, value: boolean): void {
