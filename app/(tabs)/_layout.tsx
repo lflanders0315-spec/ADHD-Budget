@@ -53,6 +53,8 @@ function QuickAddModal({
       router.push("/subscriptions/add");
     } else if (item.action === "paycheck") {
       router.push("/paychecks/add");
+    } else if (item.action === "savings") {
+      router.push("/savings/add");
     } else {
       Alert.alert(
         item.label,
