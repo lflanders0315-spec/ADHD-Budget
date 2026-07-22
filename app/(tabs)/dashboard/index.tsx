@@ -651,36 +651,41 @@ export default function DashboardScreen() {
 
           {/* Monthly Subscriptions */}
           <View className="flex-1">
-            <Card>
-              <Text
-                style={{
-                  fontSize: fontSize.xs,
-                  color: colors.textMuted,
-                  marginBottom: spacing.xs,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
-                }}
-              >
-                Monthly Subs
-              </Text>
-              <Text
-                className="font-bold mb-1"
-                style={{
-                  fontSize: fontSize.xl,
-                  color: colors.accent,
-                }}
-              >
-                {formatCurrency(totalSubCost)}
-              </Text>
-              <Text
-                style={{
-                  fontSize: fontSize.sm,
-                  color: colors.textSecondary,
-                }}
-              >
-                {subscriptions.filter((s) => s.active).length} active
-              </Text>
-            </Card>
+            <TouchableOpacity
+              onPress={() => router.push("/subscriptions")}
+              activeOpacity={0.7}
+            >
+              <Card>
+                <Text
+                  style={{
+                    fontSize: fontSize.xs,
+                    color: colors.textMuted,
+                    marginBottom: spacing.xs,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Monthly Subs
+                </Text>
+                <Text
+                  className="font-bold mb-1"
+                  style={{
+                    fontSize: fontSize.xl,
+                    color: colors.accent,
+                  }}
+                >
+                  {formatCurrency(totalSubCost)}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: fontSize.sm,
+                    color: colors.textSecondary,
+                  }}
+                >
+                  {subscriptions.filter((s) => s.active).length} active
+                </Text>
+              </Card>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

@@ -35,6 +35,10 @@ export function SubscriptionCard({ subscription, onPress }: SubscriptionCardProp
 
   const providerIcon = subscription.logo ?? getProviderIcon(subscription.provider);
 
+  // Surface: show cancellation hint for expensive subscriptions (>$20/mo)
+  const showCancelHint =
+    subscription.active && subscription.monthlyCost >= 20;
+
   return (
     <Animated.View style={animatedStyle}>
       <TouchableOpacity
@@ -79,10 +83,19 @@ export function SubscriptionCard({ subscription, onPress }: SubscriptionCardProp
               >
                 {subscription.name}
               </Text>
-              <Text className="text-base font-bold text-text-primary">
-                {formatCurrency(subscription.monthlyCost)}
-                <Text className="text-xs text-text-muted font-normal">/mo</Text>
-              </Text>
+              <View className="items-end">
+                <Text className="text-base font-bold text-text-primary">
+                  {formatCurrency(subscription.monthlyCost)}
+                  <Text className="text-xs text-text-muted font-normal">/mo</Text>
+                </Text>
+                {/* Annual cost subtly shown */}
+                <Text
+                  className="text-xs"
+                  style={{ color: colors.textMuted }}
+                >
+                  {formatCurrency(subscription.annualCost)}/yr
+                </Text>
+              </View>
             </View>
 
             <View className="flex-row items-center mt-1">
@@ -109,6 +122,22 @@ export function SubscriptionCard({ subscription, onPress }: SubscriptionCardProp
                 </Text>
               </View>
             </View>
+
+            {/* Gentle cancellation hint for expensive subscriptions */}
+            {showCancelHint && (
+              <View
+                className="mt-2 rounded-lg px-2.5 py-1"
+                style={{ backgroundColor: colors.accentLight }}
+              >
+                <Text
+                  className="text-xs"
+                  style={{ color: colors.accent }}
+                >
+                  💡 That's {formatCurrency(subscription.annualCost)} per year —{" "}
+                  <Text style={{ fontWeight: "700" }}>still need this?</Text>
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </TouchableOpacity>
