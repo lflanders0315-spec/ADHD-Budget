@@ -170,10 +170,10 @@ export default function TabsLayout() {
           headerShown: false,
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textMuted,
-          tabBarShowLabel: true,
+          tabBarShowLabel: false,
           tabBarLabelStyle: {
             fontSize: 11,
-            fontWeight: "600",
+            fontWeight: "600" as const,
             marginTop: 2,
           },
           tabBarStyle: {
@@ -197,6 +197,8 @@ export default function TabsLayout() {
           name="dashboard/index"
           options={{
             title: "Home",
+            tabBarLabel: ({ focused }: { focused: boolean }) =>
+              focused ? "Home" : "",
             tabBarIcon: ({ focused }) => (
               <TabIcon icon="🏠" focused={focused} />
             ),
@@ -206,6 +208,8 @@ export default function TabsLayout() {
           name="bills/index"
           options={{
             title: "Bills",
+            tabBarLabel: ({ focused }: { focused: boolean }) =>
+              focused ? "Bills" : "",
             tabBarIcon: ({ focused }) => (
               <TabIcon icon="💳" focused={focused} />
             ),
@@ -215,6 +219,8 @@ export default function TabsLayout() {
           name="paychecks/index"
           options={{
             title: "Pay",
+            tabBarLabel: ({ focused }: { focused: boolean }) =>
+              focused ? "Pay" : "",
             tabBarIcon: ({ focused }) => (
               <TabIcon icon="💰" focused={focused} />
             ),
@@ -224,6 +230,8 @@ export default function TabsLayout() {
           name="savings/index"
           options={{
             title: "Goals",
+            tabBarLabel: ({ focused }: { focused: boolean }) =>
+              focused ? "Goals" : "",
             tabBarIcon: ({ focused }) => (
               <TabIcon icon="🎯" focused={focused} />
             ),
@@ -233,6 +241,8 @@ export default function TabsLayout() {
           name="settings/index"
           options={{
             title: "Settings",
+            tabBarLabel: ({ focused }: { focused: boolean }) =>
+              focused ? "Settings" : "",
             tabBarIcon: ({ focused }) => (
               <TabIcon icon="⚙️" focused={focused} />
             ),
