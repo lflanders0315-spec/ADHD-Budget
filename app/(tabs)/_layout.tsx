@@ -7,7 +7,7 @@ import {
   Pressable,
   Alert,
 } from "react-native";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, borderRadius, shadows } from "@/constants/theme";
 import { FAB } from "@/components/FAB";
@@ -42,18 +42,23 @@ function QuickAddModal({
   onClose: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const handleAction = useCallback(
     (item: QuickAddItem) => {
       onClose();
-      // Placeholder — real forms come later
-      Alert.alert(
-        item.label,
-        "This will open the full form soon. 🚧",
-        [{ text: "Got it" }]
-      );
+      // Navigate for bill — other actions still placeholder
+      if (item.action === "bill") {
+        router.push("/bills/add");
+      } else {
+        Alert.alert(
+          item.label,
+          "This will open the full form soon. 🚧",
+          [{ text: "Got it" }]
+        );
+      }
     },
-    [onClose]
+    [onClose, router]
   );
 
   return (
