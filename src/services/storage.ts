@@ -23,6 +23,8 @@ export const StorageKeys = {
   subscriptions: "subscriptions",
   paychecks: "paychecks",
   savingsGoals: "savingsGoals",
+  spendingEntries: "spendingEntries",
+  seededData: "seededData",
 } as const;
 
 export type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];

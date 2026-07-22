@@ -1,3 +1,5 @@
+export { generateId } from "./uuid";
+
 export {
   formatCurrency,
   formatCurrencyCompact,
