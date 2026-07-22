@@ -45,20 +45,22 @@ function QuickAddModal({
   const router = useRouter();
 
   const handleAction = useCallback(
-    (item: QuickAddItem) => {
-      onClose();
-      // Navigate for bill — other actions still placeholder
-      if (item.action === "bill") {
-        router.push("/bills/add");
-      } else {
-        Alert.alert(
-          item.label,
-          "This will open the full form soon. 🚧",
-          [{ text: "Got it" }]
-        );
-      }
-    },
-    [onClose, router]
+  (item: QuickAddItem) => {
+    onClose();
+    // Navigate for bill and subscription — other actions still placeholder
+    if (item.action === "bill") {
+      router.push("/bills/add");
+    } else if (item.action === "subscription") {
+      router.push("/subscriptions/add");
+    } else {
+      Alert.alert(
+        item.label,
+        "This will open the full form soon. 🚧",
+        [{ text: "Got it" }]
+      );
+    }
+  },
+  [onClose, router]
   );
 
   return (
