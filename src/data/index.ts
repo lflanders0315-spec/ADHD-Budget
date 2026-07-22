@@ -1,2 +1,1 @@
-// Mock / seed data for development
-export {};
+export { seedData, hasSeededData } from "./seed";

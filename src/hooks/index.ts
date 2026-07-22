@@ -1,2 +1,1 @@
-// Reusable hooks — add custom hooks here
-export {};
+export { useHydration } from "./useHydration";
