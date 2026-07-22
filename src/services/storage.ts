@@ -19,6 +19,7 @@ export const storage = new MMKV({
 export const StorageKeys = {
   onboardingComplete: "onboardingComplete",
   themeMode: "themeMode",
+  displayName: "displayName",
   bills: "bills",
   subscriptions: "subscriptions",
   paychecks: "paychecks",

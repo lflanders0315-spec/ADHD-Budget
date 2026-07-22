@@ -29,7 +29,7 @@ export interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   onboardingComplete: getBoolean(StorageKeys.onboardingComplete),
   themeMode: (getString(StorageKeys.themeMode) as ThemeMode) ?? "light",
-  displayName: getString(StorageKeys.themeMode) ?? "",
+  displayName: getString(StorageKeys.displayName) ?? "",
 
   setOnboardingComplete: (value) => {
     setBoolean(StorageKeys.onboardingComplete, value);
@@ -42,6 +42,7 @@ export const useAppStore = create<AppState>((set) => ({
   },
 
   setDisplayName: (name) => {
+    setString(StorageKeys.displayName, name);
     set({ displayName: name });
   },
 
