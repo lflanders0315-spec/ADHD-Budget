@@ -16,6 +16,9 @@ import {
   useNotificationSync,
   useSavingsNotifications,
 } from "@/hooks/useNotifications";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useAppStore } from "@/stores/appStore";
+import { lightColors, darkColors } from "@/constants/theme";
 
 // ---------------------------------------------------------------------------
 // Query Client
@@ -36,6 +39,9 @@ const queryClient = new QueryClient({
 
 function NotificationAwareLayout() {
   const router = useRouter();
+  const themeMode = useAppStore((s) => s.themeMode);
+  const isDark = themeMode === "dark";
+  const bgColor = isDark ? darkColors.background : lightColors.background;
 
   // Sync notification schedules with store data
   useNotificationSync();
@@ -96,13 +102,16 @@ function NotificationAwareLayout() {
   }, []);
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: "#FAF9F7" },
-        animation: "fade",
-      }}
-    />
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: bgColor },
+          animation: "fade",
+        }}
+      />
+    </>
   );
 }
 
@@ -112,11 +121,12 @@ function NotificationAwareLayout() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <StatusBar style="dark" />
-        <NotificationAwareLayout />
-      </QueryClientProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <QueryClientProvider client={queryClient}>
+          <NotificationAwareLayout />
+        </QueryClientProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }

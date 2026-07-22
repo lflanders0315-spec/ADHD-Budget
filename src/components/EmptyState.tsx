@@ -1,4 +1,5 @@
 import { View, Text } from "react-native";
+import { useTheme } from "@/hooks/useTheme";
 
 interface EmptyStateProps {
   title: string;
@@ -7,13 +8,15 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ title, message, icon }: EmptyStateProps) {
+  const { colors, fontSize } = useTheme();
+
   return (
-    <View className="flex-1 items-center justify-center px-8 py-12">
-      {icon && <Text className="text-4xl mb-4">{icon}</Text>}
-      <Text className="text-xl font-bold text-text-primary text-center">
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, paddingVertical: 48 }}>
+      {icon && <Text style={{ fontSize: 40, marginBottom: 16 }}>{icon}</Text>}
+      <Text style={{ fontSize: fontSize.xl, fontWeight: "700", color: colors.textPrimary, textAlign: "center" }}>
         {title}
       </Text>
-      <Text className="text-base text-text-secondary text-center mt-2">
+      <Text style={{ fontSize: fontSize.base, color: colors.textSecondary, textAlign: "center", marginTop: 8 }}>
         {message}
       </Text>
     </View>
