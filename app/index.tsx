@@ -15,8 +15,7 @@ export default function IndexScreen() {
     if (onboardingComplete) {
       router.replace("/(tabs)/dashboard");
     } else {
-      // TODO: replace with onboarding screen once built
-      router.replace("/(tabs)/dashboard");
+      router.replace("/onboarding/welcome");
     }
   }, [onboardingComplete, router]);
 

@@ -17,3 +17,4 @@ export { AmountInput } from "./AmountInput";
 export { FAB } from "./FAB";
 export { DatePicker } from "./DatePicker";
 export { Header } from "./Header";
+export { OnboardingProgress } from "./OnboardingProgress";
