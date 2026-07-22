@@ -1,30 +1,28 @@
 import { useEffect } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useAppStore } from "@/stores/appStore";
-import { seedData } from "@/data/seed";
+import { useHydration } from "@/hooks/useHydration";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function IndexScreen() {
   const router = useRouter();
   const onboardingComplete = useAppStore((s) => s.onboardingComplete);
+  const { ready } = useHydration();
 
   useEffect(() => {
-    // Seed demo data if first launch
-    seedData();
+    if (!ready) return;
 
     if (onboardingComplete) {
       router.replace("/(tabs)/dashboard");
     } else {
       router.replace("/onboarding/welcome");
     }
-  }, [onboardingComplete, router]);
+  }, [ready, onboardingComplete, router]);
 
-  return (
-    <View className="flex-1 items-center justify-center bg-background">
-      <ActivityIndicator size="large" color="#5B8C5A" />
-      <Text className="text-base text-text-secondary mt-4">
-        Getting things ready...
-      </Text>
-    </View>
-  );
+  // Show branded loading screen while hydrating
+  if (!ready) {
+    return <LoadingScreen />;
+  }
+
+  return null;
 }

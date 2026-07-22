@@ -5,11 +5,12 @@ import {
   Modal,
   TouchableOpacity,
   Pressable,
+  Alert,
 } from "react-native";
-import { Tabs, useRouter } from "expo-router";
+import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, borderRadius, shadows } from "@/constants/theme";
 import { FAB } from "@/components/FAB";
+import { useTheme } from "@/hooks/useTheme";
 
 // ---------------------------------------------------------------------------
 // Quick-add menu items
@@ -41,24 +42,18 @@ function QuickAddModal({
   onClose: () => void;
 }) {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const { colors, borderRadius } = useTheme();
 
   const handleAction = useCallback(
-  (item: QuickAddItem) => {
-    onClose();
-    if (item.action === "bill") {
-      router.push("/bills/add");
-    } else if (item.action === "subscription") {
-      router.push("/subscriptions/add");
-    } else if (item.action === "paycheck") {
-      router.push("/paychecks/add");
-    } else if (item.action === "savings") {
-      router.push("/savings/add");
-    } else if (item.action === "spending") {
-      router.push("/spending?openLog=true");
-    }
-  },
-  [onClose, router]
+    (item: QuickAddItem) => {
+      onClose();
+      Alert.alert(
+        item.label,
+        "This will open the full form soon. 🚧",
+        [{ text: "Got it" }]
+      );
+    },
+    [onClose]
   );
 
   return (
@@ -69,7 +64,7 @@ function QuickAddModal({
       onRequestClose={onClose}
     >
       <Pressable
-        className="flex-1 bg-black/30 justify-end"
+        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)", justifyContent: "flex-end" }}
         onPress={onClose}
       >
         <Pressable
@@ -81,11 +76,15 @@ function QuickAddModal({
             paddingBottom: insets.bottom + 16,
             paddingTop: 24,
             paddingHorizontal: 24,
-            ...shadows.lg,
+            shadowColor: colors.shadowColor,
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 8,
           }}
         >
           {/* Handle */}
-          <View className="items-center mb-6">
+          <View style={{ alignItems: "center", marginBottom: 24 }}>
             <View
               style={{
                 width: 36,
@@ -96,7 +95,15 @@ function QuickAddModal({
             />
           </View>
 
-          <Text className="text-xl font-bold text-text-primary mb-6 text-center">
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "700",
+              color: colors.textPrimary,
+              marginBottom: 24,
+              textAlign: "center",
+            }}
+          >
             What would you like to add?
           </Text>
 
@@ -105,14 +112,21 @@ function QuickAddModal({
               key={item.action}
               onPress={() => handleAction(item)}
               activeOpacity={0.7}
-              className="flex-row items-center px-4 py-4 rounded-xl mb-2"
+              accessibilityLabel={item.label}
+              accessibilityRole="button"
               style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: 16,
+                paddingVertical: 16,
+                borderRadius: borderRadius.sm,
+                marginBottom: 8,
                 minHeight: 48,
                 backgroundColor: colors.surfaceMuted,
               }}
             >
-              <Text className="text-2xl mr-4">{item.icon}</Text>
-              <Text className="text-base font-semibold text-text-primary">
+              <Text style={{ fontSize: 24, marginRight: 16 }}>{item.icon}</Text>
+              <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
                 {item.label}
               </Text>
             </TouchableOpacity>
@@ -122,13 +136,18 @@ function QuickAddModal({
           <TouchableOpacity
             onPress={onClose}
             activeOpacity={0.7}
-            className="items-center justify-center mt-4 rounded-xl"
+            accessibilityLabel="Cancel"
+            accessibilityRole="button"
             style={{
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 16,
+              borderRadius: borderRadius.sm,
               minHeight: 48,
               backgroundColor: colors.surfaceMuted,
             }}
           >
-            <Text className="text-base font-semibold text-text-secondary">
+            <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textSecondary }}>
               Cancel
             </Text>
           </TouchableOpacity>
@@ -150,10 +169,12 @@ function TabIcon({
   focused: boolean;
 }) {
   return (
-    <View className="items-center justify-center" style={{ minWidth: 48 }}>
+    <View
+      style={{ alignItems: "center", justifyContent: "center", minWidth: 48 }}
+      accessibilityLabel={icon}
+    >
       <Text
-        className="text-2xl"
-        style={{ opacity: focused ? 1 : 0.6 }}
+        style={{ fontSize: 24, opacity: focused ? 1 : 0.6 }}
       >
         {icon}
       </Text>
@@ -167,6 +188,7 @@ function TabIcon({
 
 export default function TabsLayout() {
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
+  const { colors, borderRadius } = useTheme();
 
   return (
     <>
@@ -176,11 +198,6 @@ export default function TabsLayout() {
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textMuted,
           tabBarShowLabel: false,
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: "600" as const,
-            marginTop: 2,
-          },
           tabBarStyle: {
             backgroundColor: colors.surface,
             borderTopWidth: 1,
@@ -190,7 +207,11 @@ export default function TabsLayout() {
             height: 64,
             paddingBottom: 6,
             paddingTop: 6,
-            ...shadows.sm,
+            shadowColor: colors.shadowColor,
+            shadowOffset: { width: 0, height: -1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 2,
+            elevation: 2,
           },
           tabBarItemStyle: {
             minHeight: 48,

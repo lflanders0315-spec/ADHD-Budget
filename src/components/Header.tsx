@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { colors, fontSize } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 
 interface HeaderProps {
   title: string;
@@ -16,38 +16,43 @@ interface HeaderProps {
  */
 export function Header({ title, showBack = false, rightAction }: HeaderProps) {
   const router = useRouter();
+  const { colors, fontSize } = useTheme();
 
   return (
     <View
-      className="flex-row items-center justify-between px-6 py-4"
       style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 24,
+        paddingVertical: 16,
         minHeight: 56,
-        borderBottomWidth: 0,
       }}
     >
-      <View className="flex-row items-center flex-1">
+      <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
         {showBack && (
           <TouchableOpacity
             onPress={() => router.back()}
             activeOpacity={0.7}
-            className="mr-3 items-center justify-center rounded-full"
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
             style={{
+              marginRight: 12,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 9999,
               width: 40,
               height: 40,
               backgroundColor: colors.surfaceMuted,
             }}
           >
-            <Text
-              className="text-lg"
-              style={{ color: colors.textPrimary }}
-            >
-              ←
-            </Text>
+            <Text style={{ fontSize: 18, color: colors.textPrimary }}>←</Text>
           </TouchableOpacity>
         )}
         <Text
-          className="font-bold flex-1"
           style={{
+            fontWeight: "700",
+            flex: 1,
             fontSize: fontSize["3xl"],
             color: colors.textPrimary,
             letterSpacing: -0.5,
@@ -62,17 +67,22 @@ export function Header({ title, showBack = false, rightAction }: HeaderProps) {
         <TouchableOpacity
           onPress={rightAction.onPress}
           activeOpacity={0.7}
-          className="items-center justify-center rounded-full px-4"
+          accessibilityLabel={rightAction.label}
+          accessibilityRole="button"
           style={{
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 9999,
+            paddingHorizontal: 16,
             minHeight: 40,
             backgroundColor: colors.primaryLight,
           }}
         >
           <Text
-            className="font-semibold"
             style={{
+              fontWeight: "600",
               fontSize: fontSize.sm,
-              color: colors.primaryDark,
+              color: colors.primary,
             }}
           >
             {rightAction.label}

@@ -19,14 +19,10 @@ import { usePaycheckStore } from "@/stores/paycheckStore";
 import { useSavingsStore } from "@/stores/savingsStore";
 import { useSpendingStore } from "@/stores/spendingStore";
 import { useAppStore } from "@/stores/appStore";
+import { useTheme } from "@/hooks/useTheme";
+import { useAccessibility } from "@/hooks/useAccessibility";
 import { formatCurrency, formatDate } from "@/utils/formatters";
-import {
-  colors,
-  spacing,
-  borderRadius,
-  fontSize,
-} from "@/constants/theme";
-import type { Bill, Subscription, PayFrequency } from "@/models";
+import type { PayFrequency } from "@/models";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -75,6 +71,8 @@ function getOrdinalSuffix(day: number): string {
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { colors, spacing, fontSize } = useTheme();
+  const { fontScale } = useAccessibility();
 
   // ── Store selectors ──────────────────────────────────────────────────────
   const displayName = useAppStore((s) => s.displayName);
@@ -90,7 +88,6 @@ export default function DashboardScreen() {
   const goals = useSavingsStore((s) => s.goals);
   const overallProgress = useSavingsStore((s) => s.getOverallProgress());
   const entries = useSpendingStore((s) => s.entries);
-  const getCategoryTotal = useSpendingStore((s) => s.getCategoryTotal);
 
   // ── Today's Focus check-off state ────────────────────────────────────────
   const [completedFocusItems, setCompletedFocusItems] = useState<Set<string>>(
@@ -115,7 +112,6 @@ export default function DashboardScreen() {
       (sum, p) => sum + monthlyIncome(p),
       0,
     );
-    // Only count non-paid bills for monthly obligations
     const upcomingMonthlyBills = bills
       .filter((b) => b.status !== "paid" && b.recurrence !== "once")
       .reduce((sum, b) => sum + b.amount, 0);
@@ -128,7 +124,6 @@ export default function DashboardScreen() {
     const today = new Date();
     const dayOfMonth = today.getDate();
 
-    // 1. Overdue bills (highest priority)
     for (const bill of overdueBills) {
       items.push({
         id: `overdue-${bill.id}`,
@@ -138,12 +133,10 @@ export default function DashboardScreen() {
       });
     }
 
-    // 2. Bills due today or within 2 days
     for (const bill of bills) {
       if (bill.status === "paid") continue;
-      if (bill.status === "overdue") continue; // already captured above
+      if (bill.status === "overdue") continue;
       const daysUntil = bill.dueDate - dayOfMonth;
-      // Handle wrap-around (bill due early next month, we're late this month)
       const adjustedDays =
         daysUntil < -15 ? daysUntil + new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() : daysUntil;
       if (adjustedDays >= 0 && adjustedDays <= 2) {
@@ -159,9 +152,8 @@ export default function DashboardScreen() {
       }
     }
 
-    // 3. Savings goals with approaching deadlines (within 30 days)
     for (const goal of goals) {
-      if (goal.currentAmount >= goal.targetAmount) continue; // already completed
+      if (goal.currentAmount >= goal.targetAmount) continue;
       if (!goal.deadline) continue;
       const deadline = new Date(goal.deadline);
       const daysUntil = Math.ceil(
@@ -177,7 +169,6 @@ export default function DashboardScreen() {
       }
     }
 
-    // 4. Subscriptions renewing soon (from store query)
     for (const sub of renewingSoon) {
       items.push({
         id: `sub-${sub.id}`,
@@ -187,7 +178,6 @@ export default function DashboardScreen() {
       });
     }
 
-    // Return max 3
     return items.slice(0, 3);
   }, [bills, overdueBills, goals, renewingSoon]);
 
@@ -198,14 +188,12 @@ export default function DashboardScreen() {
     const thisMonthEntries = entries.filter((e) => e.date.startsWith(monthPrefix));
     const totalSpent = thisMonthEntries.reduce((sum, e) => sum + e.amount, 0);
 
-    // Aggregate by category
     const categoryTotals: Record<string, number> = {};
     for (const entry of thisMonthEntries) {
       categoryTotals[entry.category] =
         (categoryTotals[entry.category] ?? 0) + entry.amount;
     }
 
-    // Top categories sorted
     const topCategories = Object.entries(categoryTotals)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 3);
@@ -237,48 +225,56 @@ export default function DashboardScreen() {
     return map[category] ?? category;
   };
 
+  const greetingFontSize = fontSize["2xl"] * fontScale;
+  const amountFontSize = 36 * fontScale;
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <View
-      className="flex-1 bg-background"
-      style={{ paddingTop: insets.top }}
+      style={{
+        flex: 1,
+        backgroundColor: colors.background,
+        paddingTop: insets.top,
+      }}
     >
       <Header title="Today" />
 
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: spacing.lg,
-          paddingBottom: spacing.xl + 64, // extra room for tab bar
+          paddingBottom: spacing.xl + 64,
         }}
         showsVerticalScrollIndicator={false}
+        accessibilityLabel="Dashboard"
       >
         {/* ═════════════════════════════════════════════════════════════════
             1. Greeting + Available Money
            ═════════════════════════════════════════════════════════════════ */}
-        <View className="mt-2 mb-6">
+        <View style={{ marginTop: spacing.sm, marginBottom: spacing.lg }}>
           <Text
-            className="font-bold mb-1"
             style={{
-              fontSize: fontSize["2xl"],
+              fontSize: greetingFontSize,
+              fontWeight: "700",
               color: colors.textPrimary,
+              marginBottom: spacing.xs,
             }}
           >
             Hello{displayName ? `, ${displayName}` : "!"} 👋
           </Text>
           <Text
-            className="mb-3"
             style={{
-              fontSize: fontSize.sm,
+              fontSize: fontSize.sm * fontScale,
               color: colors.textSecondary,
+              marginBottom: spacing.sm,
             }}
           >
             Available this month
           </Text>
           <Text
-            className="font-bold"
             style={{
-              fontSize: 36,
+              fontSize: amountFontSize,
+              fontWeight: "700",
               color: availableMoney >= 0 ? colors.primary : colors.statusOverdue,
               letterSpacing: -1,
             }}
@@ -299,14 +295,16 @@ export default function DashboardScreen() {
         {/* ═════════════════════════════════════════════════════════════════
             2. Today's Money Focus
            ═════════════════════════════════════════════════════════════════ */}
-        <SectionHeading>Today's Focus</SectionHeading>
+        <SectionHeading color={colors.textSecondary} fontSize={fontSize.lg}>Today's Focus</SectionHeading>
         <Card className="mb-6" padded={false}>
           {todayFocusItems.length === 0 ? (
-            <View className="items-center justify-center py-6 px-4">
+            <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 24, paddingHorizontal: 16 }}>
               <Text style={{ fontSize: 32 }}>🎉</Text>
               <Text
-                className="font-semibold mt-2 text-center"
                 style={{
+                  fontWeight: "600",
+                  marginTop: spacing.sm,
+                  textAlign: "center",
                   fontSize: fontSize.base,
                   color: colors.textPrimary,
                 }}
@@ -314,8 +312,9 @@ export default function DashboardScreen() {
                 Nothing urgent today!
               </Text>
               <Text
-                className="text-center mt-1"
                 style={{
+                  textAlign: "center",
+                  marginTop: spacing.xs,
                   fontSize: fontSize.sm,
                   color: colors.textSecondary,
                 }}
@@ -340,19 +339,18 @@ export default function DashboardScreen() {
         {/* ═════════════════════════════════════════════════════════════════
             3. Bills Due Soon
            ═════════════════════════════════════════════════════════════════ */}
-        <SectionHeading>Bills Due Soon</SectionHeading>
+        <SectionHeading color={colors.textSecondary} fontSize={fontSize.lg}>Bills Due Soon</SectionHeading>
         {upcomingBills.length === 0 ? (
-          <View className="items-center py-5 mb-6">
+          <View style={{ alignItems: "center", paddingVertical: 20, marginBottom: spacing.lg }}>
             <Text style={{ fontSize: 28, marginBottom: spacing.sm }}>🌟</Text>
             <Text
-              className="font-semibold text-center"
-              style={{ fontSize: fontSize.base, color: colors.textPrimary }}
+              style={{ fontWeight: "600", textAlign: "center", fontSize: fontSize.base, color: colors.textPrimary }}
             >
               All bills are paid — great job!
             </Text>
           </View>
         ) : (
-          <View className="mb-4">
+          <View style={{ marginBottom: spacing.md }}>
             {upcomingBills.slice(0, 3).map((bill) => (
               <BillCard
                 key={bill.id}
@@ -363,12 +361,13 @@ export default function DashboardScreen() {
             {upcomingBills.length > 3 && (
               <TouchableOpacity
                 onPress={() => router.push("/(tabs)/bills")}
-                className="items-center py-2"
-                style={{ minHeight: 44 }}
+                style={{ alignItems: "center", paddingVertical: spacing.sm, minHeight: 44 }}
+                accessibilityLabel={`View all ${upcomingBills.length} bills`}
+                accessibilityRole="button"
               >
                 <Text
-                  className="font-semibold"
                   style={{
+                    fontWeight: "600",
                     fontSize: fontSize.sm,
                     color: colors.primary,
                   }}
@@ -383,41 +382,19 @@ export default function DashboardScreen() {
         {/* ═════════════════════════════════════════════════════════════════
             4. Spending Snapshot
            ═════════════════════════════════════════════════════════════════ */}
-        <View className="flex-row items-center justify-between mb-3">
-          <SectionHeading>This Month's Spending</SectionHeading>
-          <TouchableOpacity
-            onPress={() => router.push("/spending")}
-            className="py-1"
-            style={{ minHeight: 32 }}
-          >
-            <Text
-              className="font-semibold"
-              style={{ fontSize: fontSize.sm, color: colors.primary }}
-            >
-              View all →
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <SectionHeading color={colors.textSecondary} fontSize={fontSize.lg}>This Month's Spending</SectionHeading>
         <Card className="mb-6">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text
-              className="font-semibold"
-              style={{ fontSize: fontSize.base, color: colors.textPrimary }}
-            >
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.md }}>
+            <Text style={{ fontWeight: "600", fontSize: fontSize.base, color: colors.textPrimary }}>
               Total spent
             </Text>
-            <Text
-              className="font-bold"
-              style={{ fontSize: fontSize.xl, color: colors.textPrimary }}
-            >
+            <Text style={{ fontWeight: "700", fontSize: fontSize.xl, color: colors.textPrimary }}>
               {formatCurrency(spendingSnapshot.totalSpent)}
             </Text>
           </View>
 
           {spendingSnapshot.topCategories.length === 0 ? (
-            <Text
-              style={{ fontSize: fontSize.sm, color: colors.textSecondary }}
-            >
+            <Text style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
               No spending recorded this month yet.
             </Text>
           ) : (
@@ -428,39 +405,32 @@ export default function DashboardScreen() {
                     ? Math.round((amount / spendingSnapshot.totalSpent) * 100)
                     : 0;
                 return (
-                  <View key={category} className="mb-3 last:mb-0">
-                    <View className="flex-row items-center justify-between mb-1">
-                      <View className="flex-row items-center">
+                  <View key={category} style={{ marginBottom: spacing.sm }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.xs }}>
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
                         <Text style={{ fontSize: 16, marginRight: spacing.sm }}>
                           {getCategoryEmoji(category)}
                         </Text>
-                        <Text
-                          style={{
-                            fontSize: fontSize.sm,
-                            color: colors.textSecondary,
-                          }}
-                        >
+                        <Text style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
                           {getCategoryLabel(category)}
                         </Text>
                       </View>
-                      <Text
-                        className="font-semibold"
-                        style={{
-                          fontSize: fontSize.sm,
-                          color: colors.textPrimary,
-                        }}
-                      >
+                      <Text style={{ fontWeight: "600", fontSize: fontSize.sm, color: colors.textPrimary }}>
                         {formatCurrency(amount)}
                       </Text>
                     </View>
-                    {/* Mini progress bar */}
                     <View
-                      className="h-1.5 rounded-full overflow-hidden"
-                      style={{ backgroundColor: colors.surfaceMuted }}
+                      style={{
+                        height: 6,
+                        borderRadius: 3,
+                        overflow: "hidden",
+                        backgroundColor: colors.surfaceMuted,
+                      }}
                     >
                       <View
-                        className="h-full rounded-full"
                         style={{
+                          height: "100%",
+                          borderRadius: 3,
                           width: `${Math.max(pct, 2)}%`,
                           backgroundColor: colors.accent,
                         }}
@@ -476,29 +446,22 @@ export default function DashboardScreen() {
         {/* ═════════════════════════════════════════════════════════════════
             5. Savings at a Glance
            ═════════════════════════════════════════════════════════════════ */}
-        <SectionHeading>Savings Goals</SectionHeading>
+        <SectionHeading color={colors.textSecondary} fontSize={fontSize.lg}>Savings Goals</SectionHeading>
         {goals.length === 0 ? (
-          <View className="items-center py-5 mb-6">
+          <View style={{ alignItems: "center", paddingVertical: 20, marginBottom: spacing.lg }}>
             <Text style={{ fontSize: 28, marginBottom: spacing.sm }}>🐷</Text>
-            <Text
-              className="font-semibold text-center"
-              style={{ fontSize: fontSize.base, color: colors.textPrimary }}
-            >
+            <Text style={{ fontWeight: "600", textAlign: "center", fontSize: fontSize.base, color: colors.textPrimary }}>
               No savings goals yet
             </Text>
-            <Text
-              className="text-center mt-1"
-              style={{ fontSize: fontSize.sm, color: colors.textSecondary }}
-            >
+            <Text style={{ textAlign: "center", marginTop: spacing.xs, fontSize: fontSize.sm, color: colors.textSecondary }}>
               Set a goal and we'll help you get there!
             </Text>
           </View>
         ) : (
-          <View className="mb-4">
-            {/* Overall progress */}
+          <View style={{ marginBottom: spacing.md }}>
             <Card className="mb-4">
-              <View className="flex-row items-center">
-                <View className="mr-4">
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View style={{ marginRight: spacing.md }}>
                   <ProgressRing
                     progress={
                       overallProgress.total > 0
@@ -509,10 +472,9 @@ export default function DashboardScreen() {
                     strokeWidth={6}
                   />
                 </View>
-                <View className="flex-1">
+                <View style={{ flex: 1 }}>
                   <Text
-                    className="font-semibold"
-                    style={{ fontSize: fontSize.base, color: colors.textPrimary }}
+                    style={{ fontWeight: "600", fontSize: fontSize.base, color: colors.textPrimary }}
                   >
                     {overallProgress.completed} of {overallProgress.total}{" "}
                     {overallProgress.total === 1 ? "goal" : "goals"} on track
@@ -532,7 +494,6 @@ export default function DashboardScreen() {
               </View>
             </Card>
 
-            {/* Individual goal summaries */}
             {goals.slice(0, 2).map((goal) => {
               const progress =
                 goal.targetAmount > 0
@@ -540,47 +501,47 @@ export default function DashboardScreen() {
                   : 0;
               return (
                 <Card key={goal.id} className="mb-3">
-                  <View className="flex-row items-center justify-between mb-2">
-                    <View className="flex-row items-center flex-1">
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
                       {goal.icon && (
                         <Text style={{ fontSize: 18, marginRight: spacing.sm }}>
                           {goal.icon}
                         </Text>
                       )}
                       <Text
-                        className="font-semibold flex-1"
-                        style={{ fontSize: fontSize.base, color: colors.textPrimary }}
+                        style={{ fontWeight: "600", flex: 1, fontSize: fontSize.base, color: colors.textPrimary }}
                         numberOfLines={1}
                       >
                         {goal.name}
                       </Text>
                     </View>
-                    <Text
-                      className="font-bold ml-2"
-                      style={{ fontSize: fontSize.base, color: colors.textPrimary }}
-                    >
+                    <Text style={{ fontWeight: "700", marginLeft: spacing.sm, fontSize: fontSize.base, color: colors.textPrimary }}>
                       {formatCurrency(goal.currentAmount)}
                       <Text style={{ fontSize: fontSize.xs, color: colors.textMuted }}>
                         {" "}/{" "}{formatCurrency(goal.targetAmount)}
                       </Text>
                     </Text>
                   </View>
-                  {/* Progress bar */}
                   <View
-                    className="h-2 rounded-full overflow-hidden"
-                    style={{ backgroundColor: colors.surfaceMuted }}
+                    style={{
+                      height: 8,
+                      borderRadius: 4,
+                      overflow: "hidden",
+                      backgroundColor: colors.surfaceMuted,
+                    }}
                   >
                     <View
-                      className="h-full rounded-full"
                       style={{
+                        height: "100%",
+                        borderRadius: 4,
                         width: `${Math.max(progress, 0)}%`,
                         backgroundColor: goal.color ?? colors.primary,
                       }}
                     />
                   </View>
                   <Text
-                    className="mt-1"
                     style={{
+                      marginTop: spacing.xs,
                       fontSize: fontSize.xs,
                       color: goal.color ?? colors.primary,
                       fontWeight: "600",
@@ -595,16 +556,11 @@ export default function DashboardScreen() {
             {goals.length > 2 && (
               <TouchableOpacity
                 onPress={() => router.push("/(tabs)/savings")}
-                className="items-center py-2"
-                style={{ minHeight: 44 }}
+                style={{ alignItems: "center", paddingVertical: spacing.sm, minHeight: 44 }}
+                accessibilityLabel={`View all ${goals.length} goals`}
+                accessibilityRole="button"
               >
-                <Text
-                  className="font-semibold"
-                  style={{
-                    fontSize: fontSize.sm,
-                    color: colors.primary,
-                  }}
-                >
+                <Text style={{ fontWeight: "600", fontSize: fontSize.sm, color: colors.primary }}>
                   View all {goals.length} goals →
                 </Text>
               </TouchableOpacity>
@@ -615,91 +571,53 @@ export default function DashboardScreen() {
         {/* ═════════════════════════════════════════════════════════════════
             6. Bottom Summary Cards (2-column grid)
            ═════════════════════════════════════════════════════════════════ */}
-        <View className="flex-row gap-3 mb-6">
-          {/* Next Paycheck */}
-          <View className="flex-1">
+        <View style={{ flexDirection: "row", gap: spacing.sm, marginBottom: spacing.lg }}>
+          <View style={{ flex: 1 }}>
             <Card>
-              <Text
-                style={{
-                  fontSize: fontSize.xs,
-                  color: colors.textMuted,
-                  marginBottom: spacing.xs,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
-                }}
-              >
+              <Text style={{
+                fontSize: fontSize.xs,
+                color: colors.textMuted,
+                marginBottom: spacing.xs,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}>
                 Next Paycheck
               </Text>
               {nextPaycheck ? (
                 <View>
-                  <Text
-                    className="font-bold mb-1"
-                    style={{
-                      fontSize: fontSize.xl,
-                      color: colors.primary,
-                    }}
-                  >
+                  <Text style={{ fontWeight: "700", marginBottom: spacing.xs, fontSize: fontSize.xl, color: colors.primary }}>
                     {formatCurrency(nextPaycheck.netPay)}
                   </Text>
-                  <Text
-                    style={{
-                      fontSize: fontSize.sm,
-                      color: colors.textSecondary,
-                    }}
-                  >
+                  <Text style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
                     {formatDate(nextPaycheck.nextPayDate)}
                   </Text>
                 </View>
               ) : (
-                <Text
-                  style={{
-                    fontSize: fontSize.sm,
-                    color: colors.textSecondary,
-                  }}
-                >
+                <Text style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
                   No paychecks yet
                 </Text>
               )}
             </Card>
           </View>
 
-          {/* Monthly Subscriptions */}
-          <View className="flex-1">
-            <TouchableOpacity
-              onPress={() => router.push("/subscriptions")}
-              activeOpacity={0.7}
-            >
-              <Card>
-                <Text
-                  style={{
-                    fontSize: fontSize.xs,
-                    color: colors.textMuted,
-                    marginBottom: spacing.xs,
-                    textTransform: "uppercase",
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  Monthly Subs
-                </Text>
-                <Text
-                  className="font-bold mb-1"
-                  style={{
-                    fontSize: fontSize.xl,
-                    color: colors.accent,
-                  }}
-                >
-                  {formatCurrency(totalSubCost)}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: fontSize.sm,
-                    color: colors.textSecondary,
-                  }}
-                >
-                  {subscriptions.filter((s) => s.active).length} active
-                </Text>
-              </Card>
-            </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Card>
+              <Text style={{
+                fontSize: fontSize.xs,
+                color: colors.textMuted,
+                marginBottom: spacing.xs,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}>
+                Monthly Subs
+              </Text>
+              <Text style={{ fontWeight: "700", marginBottom: spacing.xs, fontSize: fontSize.xl, color: colors.accent }}>
+                {formatCurrency(totalSubCost)}
+              </Text>
+              <Text style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
+                {subscriptions.filter((s) => s.active).length} active
+              </Text>
+            </Card>
           </View>
         </View>
       </ScrollView>
@@ -711,13 +629,22 @@ export default function DashboardScreen() {
 // Section Heading
 // ---------------------------------------------------------------------------
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
+function SectionHeading({
+  children,
+  color,
+  fontSize: fs,
+}: {
+  children: React.ReactNode;
+  color: string;
+  fontSize: number;
+}) {
   return (
     <Text
-      className="font-semibold mb-3"
       style={{
-        fontSize: fontSize.lg,
-        color: colors.textSecondary,
+        fontWeight: "600",
+        marginBottom: 12,
+        fontSize: fs,
+        color,
       }}
     >
       {children}

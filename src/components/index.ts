@@ -17,4 +17,6 @@ export { AmountInput } from "./AmountInput";
 export { FAB } from "./FAB";
 export { DatePicker } from "./DatePicker";
 export { Header } from "./Header";
+export { ErrorBoundary } from "./ErrorBoundary";
+export { LoadingScreen } from "./LoadingScreen";
 export { OnboardingProgress } from "./OnboardingProgress";

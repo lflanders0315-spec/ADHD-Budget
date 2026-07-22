@@ -7,10 +7,9 @@ import Animated, {
   withTiming,
   withDelay,
 } from "react-native-reanimated";
-import type { SharedValue } from "react-native-reanimated";
-import { colors, borderRadius } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
+import { useAccessibility } from "@/hooks/useAccessibility";
 
-// Extend animated types so we can pass a Reanimated shared value directly to SVGCircle
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface ProgressRingProps {
@@ -30,9 +29,12 @@ export function ProgressRing({
   progress,
   size = 120,
   strokeWidth = 10,
-  color = colors.primary,
+  color,
   label,
 }: ProgressRingProps) {
+  const { colors } = useTheme();
+  const { reducedMotion } = useAccessibility();
+  const ringColor = color ?? colors.primary;
   const clampedProgress = Math.min(100, Math.max(0, progress));
   const animatedProgress = useSharedValue(0);
 
@@ -41,55 +43,42 @@ export function ProgressRing({
   const center = size / 2;
 
   useEffect(() => {
-    animatedProgress.value = withDelay(200, withTiming(clampedProgress, { duration: 800 }));
-  }, [clampedProgress]);
+    if (reducedMotion) {
+      animatedProgress.value = clampedProgress; // instant
+    } else {
+      animatedProgress.value = withDelay(200, withTiming(clampedProgress, { duration: 800 }));
+    }
+  }, [clampedProgress, reducedMotion]);
 
   const animatedProps = useAnimatedProps(() => {
     const dashOffset = circumference - (circumference * animatedProgress.value) / 100;
-    return {
-      strokeDashoffset: dashOffset,
-    };
+    return { strokeDashoffset: dashOffset };
   });
 
   return (
-    <View className="items-center justify-center">
+    <View style={{ alignItems: "center", justifyContent: "center" }}>
       <View style={{ width: size, height: size }}>
         <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          {/* Background circle */}
           <Circle
-            cx={center}
-            cy={center}
-            r={radius}
-            stroke={colors.borderLight}
-            strokeWidth={strokeWidth}
-            fill="none"
+            cx={center} cy={center} r={radius}
+            stroke={colors.borderLight} strokeWidth={strokeWidth} fill="none"
           />
-          {/* Animated progress circle */}
           <AnimatedCircle
-            cx={center}
-            cy={center}
-            r={radius}
-            stroke={color}
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
+            cx={center} cy={center} r={radius}
+            stroke={ringColor} strokeWidth={strokeWidth} fill="none"
+            strokeLinecap="round" strokeDasharray={circumference}
             animatedProps={animatedProps}
             transform={`rotate(-90 ${center} ${center})`}
           />
         </Svg>
-        {/* Center content */}
-        <View className="absolute inset-0 items-center justify-center">
-          <Text
-            className="font-bold text-text-primary"
-            style={{ fontSize: size * 0.22 }}
-          >
+        <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontWeight: "700", color: colors.textPrimary, fontSize: size * 0.22 }}>
             {Math.round(clampedProgress)}%
           </Text>
         </View>
       </View>
       {label && (
-        <Text className="text-sm text-text-secondary mt-2 text-center">
+        <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 8, textAlign: "center" }}>
           {label}
         </Text>
       )}
