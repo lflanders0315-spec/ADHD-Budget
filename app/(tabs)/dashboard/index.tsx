@@ -383,7 +383,21 @@ export default function DashboardScreen() {
         {/* ═════════════════════════════════════════════════════════════════
             4. Spending Snapshot
            ═════════════════════════════════════════════════════════════════ */}
-        <SectionHeading>This Month's Spending</SectionHeading>
+        <View className="flex-row items-center justify-between mb-3">
+          <SectionHeading>This Month's Spending</SectionHeading>
+          <TouchableOpacity
+            onPress={() => router.push("/spending")}
+            className="py-1"
+            style={{ minHeight: 32 }}
+          >
+            <Text
+              className="font-semibold"
+              style={{ fontSize: fontSize.sm, color: colors.primary }}
+            >
+              View all →
+            </Text>
+          </TouchableOpacity>
+        </View>
         <Card className="mb-6">
           <View className="flex-row items-center justify-between mb-4">
             <Text
