@@ -5,7 +5,6 @@ import {
   Modal,
   TouchableOpacity,
   Pressable,
-  Alert,
 } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -55,12 +54,8 @@ function QuickAddModal({
       router.push("/paychecks/add");
     } else if (item.action === "savings") {
       router.push("/savings/add");
-    } else {
-      Alert.alert(
-        item.label,
-        "This will open the full form soon. 🚧",
-        [{ text: "Got it" }]
-      );
+    } else if (item.action === "spending") {
+      router.push("/spending?openLog=true");
     }
   },
   [onClose, router]

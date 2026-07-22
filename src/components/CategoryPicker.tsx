@@ -56,6 +56,12 @@ const CATEGORY_CONFIG: Record<
     bg: colors.surfaceMuted,
     icon: "💸",
   },
+  // Short aliases for spending categories used by SpendingCategory type
+  other: {
+    color: colors.textSecondary,
+    bg: colors.surfaceMuted,
+    icon: "📦",
+  },
 };
 
 function getCategoryConfig(category: string) {
