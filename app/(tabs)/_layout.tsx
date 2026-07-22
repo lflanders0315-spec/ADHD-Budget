@@ -47,11 +47,12 @@ function QuickAddModal({
   const handleAction = useCallback(
   (item: QuickAddItem) => {
     onClose();
-    // Navigate for bill and subscription — other actions still placeholder
     if (item.action === "bill") {
       router.push("/bills/add");
     } else if (item.action === "subscription") {
       router.push("/subscriptions/add");
+    } else if (item.action === "paycheck") {
+      router.push("/paychecks/add");
     } else {
       Alert.alert(
         item.label,

@@ -48,12 +48,42 @@ export type SubscriptionFormData = z.infer<typeof subscriptionSchema>;
 // Paycheck
 // ---------------------------------------------------------------------------
 
-export const paycheckSchema = z.object({
-  source: z.string().min(1, "Source is required").max(100),
-  amount: z.number().positive("Amount must be positive"),
-  frequency: recurrenceFrequencySchema,
-  nextPayDate: z.string().min(1, "Date is required"),
-});
+export const payFrequencySchema = z.enum([
+  "weekly",
+  "biweekly",
+  "monthly",
+  "custom",
+]);
+
+export const paycheckSchema = z
+  .object({
+    employer: z.string().min(1, "Employer is required").max(100),
+    netPay: z.number().positive("Net pay must be positive"),
+    grossPay: z.number().min(0).optional(),
+    frequency: payFrequencySchema,
+    customFrequencyDays: z
+      .number()
+      .int()
+      .positive("Days must be positive")
+      .max(365, "Must be 365 or fewer")
+      .optional(),
+    nextPayDate: z.string().min(1, "Next pay date is required"),
+  })
+  .refine(
+    (data) => {
+      if (data.frequency === "custom") {
+        return (
+          data.customFrequencyDays !== undefined &&
+          data.customFrequencyDays > 0
+        );
+      }
+      return true;
+    },
+    {
+      message: "Custom frequency requires a number of days",
+      path: ["customFrequencyDays"],
+    }
+  );
 
 export type PaycheckFormData = z.infer<typeof paycheckSchema>;
 
