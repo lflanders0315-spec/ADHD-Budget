@@ -285,4 +285,12 @@ export function seedData(): void {
 
   // ── Mark seeded ──────────────────────────────────────────────────────────
   markSeeded();
+
+  // ── Schedule notifications for seed data ─────────────────────────────────
+  // Defer the import so seed.ts doesn't have a hard dependency on notifications
+  setTimeout(() => {
+    import("@/services/notifications").then(({ rescheduleAllReminders }) => {
+      rescheduleAllReminders();
+    });
+  }, 1000);
 }
